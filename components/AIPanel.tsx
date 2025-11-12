@@ -8,16 +8,17 @@ import { useSessionContext } from '@/lib/session-context'
 import Transcript from './Transcript'
 import TalkingSphere from './TalkingSphere'
 import VoiceInput from './VoiceInput'
-import { generateQuestion, speakText } from '@/lib/ai-orchestrator'
+import { speakText } from '@/lib/ai-orchestrator'
 
 interface AIPanelProps {
   onEndSession: () => void
   testUrl?: string
+  walkthroughContext?: string
 }
 
 type AIState = 'idle' | 'listening' | 'speaking' | 'thinking'
 
-export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
+export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: AIPanelProps) {
   const { sessionActive, userEvents, setUserEvents, sessionStartTime } = useSessionContext()
   const [aiState, setAIState] = useState<AIState>('idle')
   const [isMuted, setIsMuted] = useState(false)
@@ -91,6 +92,7 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
             })),
             userEvents: realUserEvents,
             testUrl: testUrl || window.location.href,
+            walkthroughContext,
             // Add context that this is an automatic question based on user action
             context: `The user just performed a ${latestEvent.type} action. Generate a brief, contextual question about their experience.`,
           }),
@@ -118,7 +120,7 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
         clearTimeout(questionTimeoutRef.current)
       }
     }
-  }, [userEvents, sessionActive, isMuted, transcript, aiState])
+  }, [userEvents, sessionActive, isMuted, transcript, aiState, walkthroughContext])
 
   const handleAIResponse = async (text: string) => {
     setCurrentQuestion(text)
@@ -172,6 +174,7 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
           })),
           userEvents: userEvents,
           testUrl: testUrl || window.location.href,
+          walkthroughContext,
         }),
       })
 
