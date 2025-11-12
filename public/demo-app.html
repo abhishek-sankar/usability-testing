@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Test App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        input {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-right: 1.5rem;
+            font-size: 1.1rem;
+        }
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+        #result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav style="margin-bottom: 2rem;">
+            <a href="#" class="nav-link" onclick="navigate('home')">Home</a>
+            <a href="#" class="nav-link" onclick="navigate('products')">Products</a>
+            <a href="#" class="nav-link" onclick="navigate('checkout')">Checkout</a>
+            <a href="#" class="nav-link" onclick="navigate('about')">About</a>
+        </nav>
+
+        <div id="content">
+            <div class="card">
+                <h1 id="page-title">Welcome to Demo App</h1>
+                <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                    This is a simple demo app for testing the AI usability testing tool.
+                    Try clicking buttons, navigating, and filling out forms!
+                </p>
+
+                <button onclick="handleClick('signup')">Sign Up</button>
+                <button onclick="handleClick('login')">Log In</button>
+                <button onclick="handleClick('explore')">Explore Features</button>
+
+                <div style="margin-top: 2rem;">
+                    <input type="text" placeholder="Enter your email" id="email-input" />
+                    <button onclick="handleSubmit()">Submit</button>
+                </div>
+
+                <div id="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function navigate(page) {
+            const titles = {
+                home: 'Welcome to Demo App',
+                products: 'Our Products',
+                checkout: 'Checkout',
+                about: 'About Us'
+            };
+            
+            document.getElementById('page-title').textContent = titles[page] || 'Demo App';
+            document.getElementById('result').textContent = `Navigated to ${page} page`;
+            
+            // Simulate route change
+            window.history.pushState({}, '', `#${page}`);
+        }
+
+        function handleClick(action) {
+            const messages = {
+                signup: 'Sign up button clicked!',
+                login: 'Login button clicked!',
+                explore: 'Explore button clicked!'
+            };
+            document.getElementById('result').textContent = messages[action] || 'Button clicked!';
+        }
+
+        function handleSubmit() {
+            const email = document.getElementById('email-input').value;
+            if (email) {
+                document.getElementById('result').textContent = `Submitted: ${email}`;
+            } else {
+                document.getElementById('result').textContent = 'Please enter an email';
+            }
+        }
+
+        // Simulate SPA navigation
+        window.addEventListener('popstate', function(e) {
+            const page = window.location.hash.slice(1) || 'home';
+            navigate(page);
+        });
+    </script>
+</body>
+</html>
+
