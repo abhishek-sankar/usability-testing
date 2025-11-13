@@ -24,11 +24,6 @@ function MainContent() {
     return getDemoConfig(testUrl)
   }, [testUrl])
 
-  const demoConfig = useMemo(() => {
-    if (!testUrl) return null
-    return getDemoConfig(testUrl)
-  }, [testUrl])
-
   const handleURLSubmit = (url: string) => {
     setTestUrl(url)
     setFlowState('intro')

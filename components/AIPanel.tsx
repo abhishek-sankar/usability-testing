@@ -236,7 +236,7 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
             {isMuted ? 'Unmute AI' : 'Mute AI'}
           </Button>
           <Button
-            onClick={onEndSession}
+            onClick={() => onEndSession(transcript)}
             variant="destructive"
             className="w-full"
           >

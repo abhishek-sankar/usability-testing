@@ -56,9 +56,9 @@ export default function IntroScreen({ testUrl, onContinue, customScript }: Intro
   }, [testUrl, customScript])
 
   return (
-    <div className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#03030a] text-white">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.35),_transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.15),_transparent_60%)]" />
+    <div className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden">
+      {/* <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.35),_transparent_55%)]" /> */}
+      {/* <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.15),_transparent_60%)]" /> */}
 
       <TalkingSphere isSpeaking={isSpeaking} />
 
