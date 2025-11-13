@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { getDefaultTestUrl } from '@/lib/demo-config'
 
 interface URLInputScreenProps {
   onContinue: (url: string) => void
@@ -11,6 +12,13 @@ interface URLInputScreenProps {
 
 export default function URLInputScreen({ onContinue }: URLInputScreenProps) {
   const [url, setUrl] = useState('https://scoot-tweak-89829545.figma.site/')
+
+  useEffect(() => {
+    const defaultUrl = getDefaultTestUrl()
+    if (defaultUrl) {
+      setUrl(defaultUrl)
+    }
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

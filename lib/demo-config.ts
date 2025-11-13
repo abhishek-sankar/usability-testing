@@ -1,6 +1,7 @@
 export interface DemoConfig {
   introScript: string
   walkthroughContext: string
+  hostnames: string[]
 }
 
 const CHATGPT_TRENDS_HOSTNAMES = [
@@ -181,23 +182,118 @@ const CHATGPT_TRENDS_INTRO = `Hi! I'm Ava, your UX research partner. We'll explo
 Feel free to click primary buttons like "Explore Trends", skim the Real-time Use Cases grid, and interact with any insight cards that catch your eye. After each action I'll follow up with short questions such as what you expected or what you hoped to learn.
 Ready to start exploring ChatGPT Trends?`
 
-function matchesChatGPTTrends(url?: string) {
+function matchesHostnames(url: string | undefined, hostnames: string[]): boolean {
   if (!url) return false
   try {
     const parsed = new URL(url.startsWith('http') ? url : `https://${url}`)
-    return CHATGPT_TRENDS_HOSTNAMES.some((host) => parsed.hostname.includes(host))
+    return hostnames.some((host) => parsed.hostname.includes(host))
   } catch (error) {
-    return CHATGPT_TRENDS_HOSTNAMES.some((host) => url.includes(host))
+    return hostnames.some((host) => url.includes(host))
+  }
+}
+
+function matchesChatGPTTrends(url?: string) {
+  // Check custom config first
+  const customConfig = getCustomConfig()
+  if (customConfig && customConfig.hostnames.length > 0) {
+    return matchesHostnames(url, customConfig.hostnames)
+  }
+  
+  // Fall back to default hostnames
+  return matchesHostnames(url, CHATGPT_TRENDS_HOSTNAMES)
+}
+
+// Storage key for custom configs
+const CUSTOM_CONFIG_KEY = 'ai-usability-testing-custom-config'
+const DEFAULT_TEST_URL_KEY = 'ai-usability-testing-default-url'
+
+// Get custom config from localStorage (client-side only)
+export function getCustomConfig(): DemoConfig | null {
+  if (typeof window === 'undefined') return null
+  
+  try {
+    const stored = localStorage.getItem(CUSTOM_CONFIG_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed.introScript && parsed.walkthroughContext && parsed.hostnames) {
+        return parsed as DemoConfig
+      }
+    }
+  } catch (error) {
+    console.error('Error reading custom config:', error)
+  }
+  return null
+}
+
+// Save custom config to localStorage (client-side only)
+export function saveCustomConfig(config: DemoConfig): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    localStorage.setItem(CUSTOM_CONFIG_KEY, JSON.stringify(config))
+  } catch (error) {
+    console.error('Error saving custom config:', error)
+  }
+}
+
+// Reset to default config
+export function resetCustomConfig(): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    localStorage.removeItem(CUSTOM_CONFIG_KEY)
+  } catch (error) {
+    console.error('Error resetting custom config:', error)
+  }
+}
+
+// Get default config
+export function getDefaultConfig(): DemoConfig {
+  return {
+    introScript: CHATGPT_TRENDS_INTRO,
+    walkthroughContext: CHATGPT_TRENDS_WALKTHROUGH,
+    hostnames: [...CHATGPT_TRENDS_HOSTNAMES],
   }
 }
 
 export function getDemoConfig(url?: string): DemoConfig | null {
-  if (!matchesChatGPTTrends(url)) {
-    return null
+  // Always use custom config if available (client-side only)
+  const customConfig = getCustomConfig()
+  if (customConfig) {
+    return customConfig
   }
 
-  return {
-    introScript: CHATGPT_TRENDS_INTRO,
-    walkthroughContext: CHATGPT_TRENDS_WALKTHROUGH,
+  // Fall back to default config if URL matches ChatGPT Trends
+  if (matchesChatGPTTrends(url)) {
+    return getDefaultConfig()
+  }
+
+  return null
+}
+
+// Get default test URL from localStorage (client-side only)
+export function getDefaultTestUrl(): string | null {
+  if (typeof window === 'undefined') return null
+  
+  try {
+    return localStorage.getItem(DEFAULT_TEST_URL_KEY)
+  } catch (error) {
+    console.error('Error reading default test URL:', error)
+    return null
+  }
+}
+
+// Save default test URL to localStorage (client-side only)
+export function saveDefaultTestUrl(url: string): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    if (url.trim()) {
+      localStorage.setItem(DEFAULT_TEST_URL_KEY, url.trim())
+    } else {
+      localStorage.removeItem(DEFAULT_TEST_URL_KEY)
+    }
+  } catch (error) {
+    console.error('Error saving default test URL:', error)
   }
 }

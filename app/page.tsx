@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { SessionProvider, useSessionContext } from '@/lib/session-context'
 import URLInputScreen from '@/components/URLInputScreen'
 import IntroScreen from '@/components/IntroScreen'
@@ -8,7 +8,7 @@ import AppFrame from '@/components/AppFrame'
 import AIPanel from '@/components/AIPanel'
 import PostTestSurvey from '@/components/PostTestSurvey'
 import TestSummary from '@/components/TestSummary'
-import { getDemoConfig } from '@/lib/demo-config'
+import { getDemoConfig, getDefaultTestUrl } from '@/lib/demo-config'
 
 type FlowState = 'url-input' | 'intro' | 'testing' | 'survey' | 'summary'
 
@@ -19,8 +19,17 @@ function MainContent() {
   const [surveyAnswers, setSurveyAnswers] = useState<Record<string, number>>({})
   const [conversationHistory, setConversationHistory] = useState<Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>>([])
 
+  // Auto-load default URL on mount
+  useEffect(() => {
+    const defaultUrl = getDefaultTestUrl()
+    if (defaultUrl) {
+      setTestUrl(defaultUrl)
+      setFlowState('intro')
+    }
+  }, [])
+
   const demoConfig = useMemo(() => {
-    if (!testUrl) return null
+    // Always get config (will use custom if available, or default if URL matches)
     return getDemoConfig(testUrl)
   }, [testUrl])
 
@@ -65,7 +74,7 @@ function MainContent() {
         <IntroScreen
           testUrl={testUrl}
           onContinue={handleIntroContinue}
-          customScript={demoConfig?.introScript}
+          customScript={demoConfig?.introScript || undefined}
         />
       )}
 
