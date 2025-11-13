@@ -163,10 +163,10 @@ As a usability testing agent for ${domain}, what should your ideal response be?`
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-5-nano', 
+        model: 'gpt-5', 
         messages: openAIMessages,
         // Note: gpt-5-nano only supports default temperature (1), cannot customize
-        max_completion_tokens: 1000, // Keep responses concise (gpt-5-nano uses max_completion_tokens instead of max_tokens)
+        max_completion_tokens: 2000, // Keep responses concise (gpt-5-nano uses max_completion_tokens instead of max_tokens)
       }),
     })
 

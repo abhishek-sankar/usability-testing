@@ -9,7 +9,7 @@ import VoiceInput from './VoiceInput'
 import { speakText } from '@/lib/ai-orchestrator'
 
 interface AIPanelProps {
-  onEndSession: () => void
+  onEndSession: (conversation: Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>) => void
   testUrl?: string
   walkthroughContext?: string
 }
