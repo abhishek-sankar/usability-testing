@@ -11,7 +11,7 @@ import VoiceInput from './VoiceInput'
 import { speakText } from '@/lib/ai-orchestrator'
 
 interface AIPanelProps {
-  onEndSession: () => void
+  onEndSession: (conversation: Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>) => void
   testUrl?: string
   walkthroughContext?: string
 }
@@ -252,7 +252,7 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
           {isMuted ? 'Unmute AI' : 'Mute AI'}
         </Button>
         <Button
-          onClick={onEndSession}
+          onClick={() => onEndSession(transcript)}
           variant="destructive"
           className="w-full"
         >

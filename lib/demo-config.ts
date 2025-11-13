@@ -83,9 +83,9 @@ To visualize worldwide ChatGPT activity and emerging topic distribution.
 - **Interactive World Map:**
   - Displays active regions (color intensity shows trend density).
   - Color codes:
-    - 🟦 Blue = High activity  
-    - 🟩 Green = Rising trend  
-    - 🟪 Purple = Stable growth  
+    - Blue = High activity  
+    - Green = Rising trend  
+    - Purple = Stable growth  
   - Hovering shows tooltip with top trending topics in that region.
   - Time filter toggles: Past hour / 24 hours / 7 days.
 
