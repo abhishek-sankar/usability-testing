@@ -1,28 +1,26 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { useSessionContext } from '@/lib/session-context'
 import Transcript from './Transcript'
 import TalkingSphere from './TalkingSphere'
 import VoiceInput from './VoiceInput'
-import { generateQuestion, speakText } from '@/lib/ai-orchestrator'
+import { speakText } from '@/lib/ai-orchestrator'
 
 interface AIPanelProps {
   onEndSession: () => void
   testUrl?: string
+  walkthroughContext?: string
 }
 
 type AIState = 'idle' | 'listening' | 'speaking' | 'thinking'
 
-export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
+export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: AIPanelProps) {
   const { sessionActive, userEvents, setUserEvents, sessionStartTime } = useSessionContext()
   const [aiState, setAIState] = useState<AIState>('idle')
   const [isMuted, setIsMuted] = useState(false)
   const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>>([])
-  const [currentQuestion, setCurrentQuestion] = useState<string>('')
   const questionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastEventRef = useRef<any>(null)
 
@@ -91,6 +89,7 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
             })),
             userEvents: realUserEvents,
             testUrl: testUrl || window.location.href,
+            walkthroughContext,
             // Add context that this is an automatic question based on user action
             context: `The user just performed a ${latestEvent.type} action. Generate a brief, contextual question about their experience.`,
           }),
@@ -118,10 +117,9 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
         clearTimeout(questionTimeoutRef.current)
       }
     }
-  }, [userEvents, sessionActive, isMuted, transcript, aiState])
+  }, [userEvents, sessionActive, isMuted, transcript, aiState, walkthroughContext])
 
   const handleAIResponse = async (text: string) => {
-    setCurrentQuestion(text)
     setTranscript((prev) => [
       ...prev,
       { speaker: 'ai', text, timestamp: Date.now() },
@@ -172,6 +170,7 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
           })),
           userEvents: userEvents,
           testUrl: testUrl || window.location.href,
+          walkthroughContext,
         }),
       })
 
@@ -221,40 +220,29 @@ export default function AIPanel({ onEndSession, testUrl }: AIPanelProps) {
         <Transcript messages={transcript} />
       </div>
 
-      {/* Current question highlight */}
-      {currentQuestion && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mx-4 mb-4"
-        >
-          <Card className="p-4">
-            <p className="text-sm font-medium">{currentQuestion}</p>
-          </Card>
-        </motion.div>
-      )}
-
       {/* Voice Input */}
       <div className="p-4 border-t border-border">
         <VoiceInput onMessage={handleUserMessage} disabled={!sessionActive} />
       </div>
 
       {/* Controls */}
-      <div className="p-4 border-t border-border space-y-2">
-        <Button
-          onClick={handleMuteToggle}
-          variant={isMuted ? 'outline' : 'default'}
-          className="w-full"
-        >
-          {isMuted ? 'Unmute AI' : 'Mute AI'}
-        </Button>
-        <Button
-          onClick={onEndSession}
-          variant="destructive"
-          className="w-full"
-        >
-          End Test Session
-        </Button>
+      <div className="p-4 border-t border-border">
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            onClick={handleMuteToggle}
+            variant={isMuted ? 'outline' : 'default'}
+            className="w-full"
+          >
+            {isMuted ? 'Unmute AI' : 'Mute AI'}
+          </Button>
+          <Button
+            onClick={onEndSession}
+            variant="destructive"
+            className="w-full"
+          >
+            End Test Session
+          </Button>
+        </div>
       </div>
     </div>
   )

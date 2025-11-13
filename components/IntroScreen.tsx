@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import TalkingSphere from './TalkingSphere'
 import { speakText } from '@/lib/ai-orchestrator'
 
@@ -12,15 +11,23 @@ interface IntroScreenProps {
   customScript?: string
 }
 
+const getDomain = (url: string) => {
+  try {
+    return new URL(url).hostname.replace('www.', '')
+  } catch (error) {
+    return url
+  }
+}
+
 const introScript = (url: string, customScript?: string) => {
+  const domain = getDomain(url)
+
   // Use custom script if provided, otherwise use default
   if (customScript) {
-    const domain = new URL(url).hostname.replace('www.', '')
     return customScript.replace(/{url}/g, url).replace(/{domain}/g, domain)
   }
-  
-  const domain = new URL(url).hostname.replace('www.', '')
-  return `Hello! Welcome to AI usability testing. You're about to test ${domain}. 
+
+  return `Hello! Welcome to AI usability testing. You're about to test ${domain}.
 
 I'll guide you through this process. You'll be able to interact with the website freely, and I'll ask you some questions along the way about your experience.
 
@@ -40,7 +47,7 @@ export default function IntroScreen({ testUrl, onContinue, customScript }: Intro
     hasPlayedRef.current = true
 
     const script = introScript(testUrl, customScript)
-    
+
     setIsSpeaking(true)
     speakText(script, () => {
       setIsSpeaking(false)
@@ -49,28 +56,24 @@ export default function IntroScreen({ testUrl, onContinue, customScript }: Intro
   }, [testUrl, customScript])
 
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-background p-8">
-      <Card className="w-full max-w-4xl p-12">
-        <div className="flex flex-col items-center space-y-8">
-          <TalkingSphere isSpeaking={isSpeaking} />
-          
-          {hasPlayedIntro && (
-            <div className="w-full space-y-4">
-              <p className="text-center text-muted-foreground">
-                Ready to begin testing?
-              </p>
-              <Button
-                onClick={onContinue}
-                className="w-full"
-                size="lg"
-              >
-                Yes, let's start
-              </Button>
-            </div>
-          )}
+    <div className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#03030a] text-white">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.35),_transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-20 bg-[radial-gradient(circle_at_bottom,_rgba(59,130,246,0.15),_transparent_60%)]" />
+
+      <TalkingSphere isSpeaking={isSpeaking} />
+
+      {hasPlayedIntro && (
+        <div className="mt-12 flex flex-col items-center space-y-4 text-center">
+          <p className="text-sm text-white/70">Ready to begin testing?</p>
+          <Button
+            onClick={onContinue}
+            size="lg"
+            className="min-w-[220px]"
+          >
+            Yes, let's start
+          </Button>
         </div>
-      </Card>
+      )}
     </div>
   )
 }
-

@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { SessionProvider, useSessionContext } from '@/lib/session-context'
 import URLInputScreen from '@/components/URLInputScreen'
 import IntroScreen from '@/components/IntroScreen'
 import AppFrame from '@/components/AppFrame'
 import AIPanel from '@/components/AIPanel'
 import PostTestSurvey from '@/components/PostTestSurvey'
+import { getDemoConfig } from '@/lib/demo-config'
 
 type FlowState = 'url-input' | 'intro' | 'testing' | 'survey'
 
@@ -15,6 +16,11 @@ function MainContent() {
   const [flowState, setFlowState] = useState<FlowState>('url-input')
   const [testUrl, setTestUrl] = useState<string>('')
   const [surveyAnswers, setSurveyAnswers] = useState<Record<string, number>>({})
+
+  const demoConfig = useMemo(() => {
+    if (!testUrl) return null
+    return getDemoConfig(testUrl)
+  }, [testUrl])
 
   const handleURLSubmit = (url: string) => {
     setTestUrl(url)
@@ -47,13 +53,21 @@ function MainContent() {
       )}
 
       {flowState === 'intro' && (
-        <IntroScreen testUrl={testUrl} onContinue={handleIntroContinue} />
+        <IntroScreen
+          testUrl={testUrl}
+          onContinue={handleIntroContinue}
+          customScript={demoConfig?.introScript}
+        />
       )}
 
       {flowState === 'testing' && (
         <div className="h-screen w-screen flex">
           <AppFrame testAppUrl={testUrl} />
-          <AIPanel onEndSession={handleEndSession} testUrl={testUrl} />
+          <AIPanel
+            onEndSession={handleEndSession}
+            testUrl={testUrl}
+            walkthroughContext={demoConfig?.walkthroughContext}
+          />
         </div>
       )}
 

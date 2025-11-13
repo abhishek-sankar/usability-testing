@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getDemoConfig } from '@/lib/demo-config'
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -8,7 +9,7 @@ interface ChatMessage {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { messages, userEvents, testUrl, context } = body
+    const { messages, userEvents, testUrl, context, walkthroughContext } = body
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 })
@@ -58,6 +59,18 @@ Guidelines:
 - Be conversational and warm, not robotic
 - If they seem stuck or confused, offer gentle guidance`
 
+    let resolvedWalkthroughContext = walkthroughContext
+    if (!resolvedWalkthroughContext && testUrl) {
+      const demoConfig = getDemoConfig(testUrl)
+      if (demoConfig?.walkthroughContext) {
+        resolvedWalkthroughContext = demoConfig.walkthroughContext
+      }
+    }
+
+    if (resolvedWalkthroughContext) {
+      systemPrompt += `\n\nSite-specific context to reference:\n${resolvedWalkthroughContext}`
+    }
+
     // Add additional context if provided (e.g., for automatic questions based on user actions)
     if (context) {
       systemPrompt += `\n\nAdditional context: ${context}`
@@ -71,7 +84,7 @@ Guidelines:
     
     // Create a user message that explains the context and asks what question to ask
     // Always end with: "As a usability testing agent for [domain], what should your ideal response be?"
-    const contextMessage = `You are conducting a usability test for ${domain}. ${eventDescription}
+    let contextMessage = `You are conducting a usability test for ${domain}. ${eventDescription}
 
 The user is performing usability testing - they're exploring and interacting with the website while you observe and ask questions.
 
@@ -79,6 +92,10 @@ Recent user actions:
 ${eventSummary}
 
 As a usability testing agent for ${domain}, what should your ideal response be?`
+
+    if (resolvedWalkthroughContext) {
+      contextMessage += `\n\nReference walkthrough details:\n${resolvedWalkthroughContext}`
+    }
 
     // Prepare messages for OpenAI
     const openAIMessages: ChatMessage[] = [
