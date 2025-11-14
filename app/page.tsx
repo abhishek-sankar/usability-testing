@@ -13,7 +13,7 @@ import { getDemoConfig, getDefaultTestUrl } from '@/lib/demo-config'
 type FlowState = 'url-input' | 'intro' | 'testing' | 'survey' | 'summary'
 
 function MainContent() {
-  const { setSessionActive, setSessionStartTime, userEvents } = useSessionContext()
+  const { setSessionActive, setSessionStartTime, userEvents, sessionStartTime } = useSessionContext()
   const [flowState, setFlowState] = useState<FlowState>('url-input')
   const [testUrl, setTestUrl] = useState<string>('')
   const [surveyAnswers, setSurveyAnswers] = useState<Record<string, number>>({})
@@ -99,6 +99,7 @@ function MainContent() {
           conversationHistory={conversationHistory}
           surveyAnswers={surveyAnswers}
           testUrl={testUrl}
+          sessionStartTime={sessionStartTime}
           onClose={handleSummaryClose}
         />
       )}

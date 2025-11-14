@@ -10,6 +10,7 @@ interface TestSummaryProps {
   conversationHistory: Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>
   surveyAnswers: Record<string, number>
   testUrl: string
+  sessionStartTime?: number | null
   onClose: () => void
 }
 
@@ -18,11 +19,14 @@ export default function TestSummary({
   conversationHistory,
   surveyAnswers,
   testUrl,
+  sessionStartTime,
   onClose,
 }: TestSummaryProps) {
   const [summary, setSummary] = useState<string>('')
   const [isGenerating, setIsGenerating] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const hasGeneratedRef = useRef(false)
 
   useEffect(() => {
@@ -56,12 +60,48 @@ export default function TestSummary({
       }
 
       const result = await response.json()
-      setSummary(result.summary || 'No summary generated')
+      const generatedSummary = result.summary || 'No summary generated'
+      setSummary(generatedSummary)
+      
+      // Save session to database after summary is generated
+      await saveSession(generatedSummary)
     } catch (err: any) {
       console.error('Error generating summary:', err)
       setError(err.message || 'Failed to generate summary')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const saveSession = async (summaryText: string) => {
+    try {
+      setIsSaving(true)
+      const response = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          testUrl,
+          userEvents,
+          conversationHistory,
+          surveyAnswers,
+          summary: summaryText,
+          sessionStartTime,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save session')
+      }
+
+      const result = await response.json()
+      setSessionId(result.sessionId)
+    } catch (err: any) {
+      console.error('Error saving session:', err)
+      // Don't show error to user, just log it
+    } finally {
+      setIsSaving(false)
     }
   }
 

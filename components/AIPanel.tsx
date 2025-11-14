@@ -6,7 +6,7 @@ import { useSessionContext } from '@/lib/session-context'
 import Transcript from './Transcript'
 import TalkingSphere from './TalkingSphere'
 import VoiceInput from './VoiceInput'
-import { speakText } from '@/lib/ai-orchestrator'
+import { speakText, stopAudio } from '@/lib/ai-orchestrator'
 
 interface AIPanelProps {
   onEndSession: (conversation: Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>) => void
@@ -21,6 +21,7 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
   const [aiState, setAIState] = useState<AIState>('idle')
   const [isMuted, setIsMuted] = useState(false)
   const [transcript, setTranscript] = useState<Array<{ speaker: 'ai' | 'user'; text: string; timestamp: number }>>([])
+  const [isRecording, setIsRecording] = useState(false)
   const questionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastEventRef = useRef<any>(null)
 
@@ -131,18 +132,14 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
       { type: 'question_asked', timestamp: Date.now(), elapsedTime: Date.now() - (sessionStartTime || Date.now()) },
     ])
 
-    if (!isMuted) {
-      setAIState('speaking')
-      try {
-        await speakText(text, () => {
-          setAIState('listening')
-          setTimeout(() => setAIState('idle'), 2000)
-        })
-      } catch (error) {
-        console.error('Error speaking:', error)
-        setAIState('idle')
-      }
-    } else {
+    setAIState('speaking')
+    try {
+      await speakText(text, () => {
+        setAIState('listening')
+        setTimeout(() => setAIState('idle'), 2000)
+      }, isMuted)
+    } catch (error) {
+      console.error('Error speaking:', error)
       setAIState('idle')
     }
   }
@@ -189,8 +186,12 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
   }
 
   const handleMuteToggle = () => {
-    setIsMuted(!isMuted)
-    if (!isMuted) {
+    const newMutedState = !isMuted
+    setIsMuted(newMutedState)
+    
+    // If muting, stop any currently playing audio
+    if (newMutedState) {
+      stopAudio()
       setAIState('idle')
     }
   }
@@ -215,14 +216,20 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
         </div>
       </div>
 
-      {/* Transcript */}
-      <div className="flex-1 overflow-y-auto p-4">
-        <Transcript messages={transcript} />
-      </div>
+      {/* Transcript - Hide when recording */}
+      {!isRecording && (
+        <div className="flex-1 overflow-y-auto p-4">
+          <Transcript messages={transcript} />
+        </div>
+      )}
 
       {/* Voice Input */}
       <div className="p-4 border-t border-border">
-        <VoiceInput onMessage={handleUserMessage} disabled={!sessionActive} />
+        <VoiceInput 
+          onMessage={handleUserMessage} 
+          disabled={!sessionActive}
+          onRecordingChange={setIsRecording}
+        />
       </div>
 
       {/* Controls */}

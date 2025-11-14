@@ -70,11 +70,27 @@ export async function generateQuestion(
   return question
 }
 
+// Store current audio element for mute control
+let currentAudio: HTMLAudioElement | null = null
+
 export async function speakText(
   text: string,
-  onComplete: () => void
+  onComplete: () => void,
+  isMuted: boolean = false
 ): Promise<void> {
   try {
+    // If muted, skip audio playback but still call onComplete
+    if (isMuted) {
+      setTimeout(onComplete, text.length * 50) // Rough estimate: 50ms per character
+      return
+    }
+
+    // Stop any currently playing audio
+    if (currentAudio) {
+      currentAudio.pause()
+      currentAudio = null
+    }
+
     // Call API route for TTS
     const response = await fetch('/api/tts', {
       method: 'POST',
@@ -92,22 +108,33 @@ export async function speakText(
     const audioBlob = await response.blob()
     const audioUrl = URL.createObjectURL(audioBlob)
     const audio = new Audio(audioUrl)
+    currentAudio = audio
 
     audio.onended = () => {
       URL.revokeObjectURL(audioUrl)
+      currentAudio = null
       onComplete()
     }
 
     audio.onerror = () => {
       URL.revokeObjectURL(audioUrl)
+      currentAudio = null
       onComplete()
     }
 
     await audio.play()
   } catch (error) {
     console.error('Error in speakText:', error)
+    currentAudio = null
     // Fallback: just call onComplete after a delay
     setTimeout(onComplete, text.length * 50) // Rough estimate: 50ms per character
+  }
+}
+
+export function stopAudio(): void {
+  if (currentAudio) {
+    currentAudio.pause()
+    currentAudio = null
   }
 }
 
