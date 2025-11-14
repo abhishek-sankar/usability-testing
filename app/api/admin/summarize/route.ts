@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import Anthropic from '@anthropic-ai/sdk'
+import { OpenAI } from 'openai'
 
 // Middleware to check admin password
 function checkAdminAuth(request: NextRequest): boolean {
@@ -15,7 +15,7 @@ function checkAdminAuth(request: NextRequest): boolean {
   }
 
   const token = authHeader.substring(7)
-  return token === adminPassword
+  return token === adminPassword  
 }
 
 export async function POST(request: NextRequest) {
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'ANTHROPIC_API_KEY not configured' },
+        { error: 'OPENAI_API_KEY not configured' },
         { status: 500 }
       )
     }
@@ -130,8 +130,8 @@ export async function POST(request: NextRequest) {
 
     const testUrlList = Array.from(testUrls).join(', ')
 
-    // Generate cross-session summary using Claude Haiku
-    const anthropic = new Anthropic({ apiKey })
+    // Generate cross-session summary using OpenAI
+    const openai = new OpenAI({ apiKey })
 
     const prompt = `Analyze ${sessions.length} usability testing sessions for ${testUrlList} and provide a comprehensive cross-session summary.
 
@@ -156,18 +156,13 @@ Please provide a detailed cross-session analysis covering:
 
 Format your response in clear sections with headers. Be specific and reference actual patterns from the data.`
 
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-20241022',
+    const message = await openai.chat.completions.create({
+      model: 'gpt-5-nano',
       max_tokens: 4000,
-      messages: [
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
+      messages: [{ role: 'user', content: prompt }],
     })
 
-    const summary = message.content[0].type === 'text' ? message.content[0].text : ''
+    const summary = message.choices[0].message.content
 
     if (!summary) {
       return NextResponse.json(
