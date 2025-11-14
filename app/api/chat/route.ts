@@ -57,7 +57,11 @@ Guidelines:
 - If they're speaking to you, respond naturally to what they said
 - Don't ask too many questions in a row - let them explore
 - Be conversational and warm, not robotic
-- If they seem stuck or confused, offer gentle guidance`
+- If they seem stuck or confused, offer gentle guidance
+
+
+
+`
 
     let resolvedWalkthroughContext = walkthroughContext
     if (!resolvedWalkthroughContext && testUrl) {
