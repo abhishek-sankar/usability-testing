@@ -9,9 +9,10 @@ import { Card } from '@/components/ui/card'
 interface VoiceInputProps {
   onMessage: (message: string) => void
   disabled?: boolean
+  onRecordingChange?: (isRecording: boolean) => void
 }
 
-export default function VoiceInput({ onMessage, disabled }: VoiceInputProps) {
+export default function VoiceInput({ onMessage, disabled, onRecordingChange }: VoiceInputProps) {
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [textInput, setTextInput] = useState('')
@@ -19,6 +20,11 @@ export default function VoiceInput({ onMessage, disabled }: VoiceInputProps) {
   const [isProcessing, setIsProcessing] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+
+  // Notify parent of recording state changes
+  useEffect(() => {
+    onRecordingChange?.(isRecording)
+  }, [isRecording, onRecordingChange])
 
   const startRecording = async () => {
     try {
@@ -177,14 +183,6 @@ export default function VoiceInput({ onMessage, disabled }: VoiceInputProps) {
           </div>
         )}
       </div>
-
-      {/* Transcript */}
-      {transcript && (
-        <div className="p-3 bg-muted rounded-lg">
-          <p className="text-sm font-medium mb-1">Transcript:</p>
-          <p className="text-sm">{transcript}</p>
-        </div>
-      )}
 
       {/* Text Input */}
       <form onSubmit={handleTextSubmit} className="flex gap-2">

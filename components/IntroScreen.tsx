@@ -49,7 +49,13 @@ export default function IntroScreen({ testUrl, onContinue, customScript }: Intro
     const script = introScript(testUrl, customScript)
 
     setIsSpeaking(true)
+    // Call speakText with isMuted explicitly set to false
     speakText(script, () => {
+      setIsSpeaking(false)
+      setHasPlayedIntro(true)
+    }, false).catch((error) => {
+      console.error('Error playing intro audio:', error)
+      // If audio fails, still show the continue button
       setIsSpeaking(false)
       setHasPlayedIntro(true)
     })
