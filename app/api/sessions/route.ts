@@ -30,15 +30,15 @@ export async function POST(request: NextRequest) {
     // Calculate session duration
     const sessionDuration = sessionStartTime
       ? Math.round((Date.now() - sessionStartTime) / 1000)
-      : null
+      : undefined
 
     const sessionData: Omit<TestSession, 'id' | 'created_at'> = {
       test_url: testUrl,
       user_events: userEvents || [],
       conversation_history: conversationHistory || [],
       survey_answers: surveyAnswers || {},
-      summary: summary || null,
-      session_duration: sessionDuration || null,
+      summary: summary || undefined,
+      session_duration: sessionDuration,
     }
 
     const { data, error } = await supabase
