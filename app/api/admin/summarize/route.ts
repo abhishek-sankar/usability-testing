@@ -156,13 +156,13 @@ Please provide a detailed cross-session analysis covering:
 
 Format your response in clear sections with headers. Be specific and reference actual patterns from the data.`
 
-    const message = await openai.chat.completions.create({
+    const result = await openai.chat.completions.create({
       model: 'gpt-5-nano',
-      max_tokens: 4000,
+      max_completion_tokens: 4000,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const summary = message.choices[0].message.content
+    const summary = result.choices?.[0]?.message?.content || ''
 
     if (!summary) {
       return NextResponse.json(
