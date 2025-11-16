@@ -132,14 +132,14 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
       { type: 'question_asked', timestamp: Date.now(), elapsedTime: Date.now() - (sessionStartTime || Date.now()) },
     ])
 
-    setAIState('speaking')
-    try {
-      await speakText(text, () => {
-        setAIState('listening')
-        setTimeout(() => setAIState('idle'), 2000)
+      setAIState('speaking')
+      try {
+        await speakText(text, () => {
+          setAIState('listening')
+          setTimeout(() => setAIState('idle'), 2000)
       }, isMuted)
-    } catch (error) {
-      console.error('Error speaking:', error)
+      } catch (error) {
+        console.error('Error speaking:', error)
       setAIState('idle')
     }
   }
@@ -218,9 +218,9 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
 
       {/* Transcript - Hide when recording */}
       {!isRecording && (
-        <div className="flex-1 overflow-y-auto p-4">
-          <Transcript messages={transcript} />
-        </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        <Transcript messages={transcript} />
+      </div>
       )}
 
       {/* Voice Input */}

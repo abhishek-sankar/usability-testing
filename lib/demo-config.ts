@@ -2,11 +2,11 @@ export interface DemoConfig {
   introScript: string
   walkthroughContext: string
   hostnames: string[]
+  projectId?: string
 }
 
-const CHATGPT_TRENDS_HOSTNAMES = [
-  'scoot-tweak-89829545.figma.site',
-]
+const CHATGPT_TRENDS_HOSTNAMES = ['scoot-tweak-89829545.figma.site']
+const DEFAULT_PROJECT_ID = process.env.NEXT_PUBLIC_DEFAULT_PROJECT_ID
 
 const CHATGPT_TRENDS_WALKTHROUGH = `You are guiding a usability walkthrough of the ChatGPT Trends concept site.
 The page is structured as a marketing/insights hub with these notable sections:
@@ -253,6 +253,7 @@ export function getDefaultConfig(): DemoConfig {
     introScript: CHATGPT_TRENDS_INTRO,
     walkthroughContext: CHATGPT_TRENDS_WALKTHROUGH,
     hostnames: [...CHATGPT_TRENDS_HOSTNAMES],
+    projectId: undefined,
   }
 }
 

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import TalkingSphere from './TalkingSphere'
-import { speakText } from '@/lib/ai-orchestrator'
+import { speakText, stopAudio } from '@/lib/ai-orchestrator'
 
 interface IntroScreenProps {
   testUrl: string
@@ -39,7 +39,38 @@ Ready to begin?`
 export default function IntroScreen({ testUrl, onContinue, customScript }: IntroScreenProps) {
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [hasPlayedIntro, setHasPlayedIntro] = useState(false)
+  const [audioBlocked, setAudioBlocked] = useState(false)
   const hasPlayedRef = useRef(false)
+  const introSkippedRef = useRef(false)
+  const scriptRef = useRef('')
+
+  const playIntro = useCallback(async () => {
+    const script = scriptRef.current
+    if (!script) return
+
+    introSkippedRef.current = false
+    setAudioBlocked(false)
+    setIsSpeaking(true)
+
+    try {
+      await speakText(
+        script,
+        () => {
+          if (introSkippedRef.current) return
+          setIsSpeaking(false)
+          setHasPlayedIntro(true)
+        },
+        false,
+      )
+    } catch (error) {
+      console.error('Error playing intro audio:', error)
+      setIsSpeaking(false)
+      setAudioBlocked(true)
+      if (!hasPlayedIntro) {
+        setHasPlayedIntro(true)
+      }
+    }
+  }, [hasPlayedIntro])
 
   useEffect(() => {
     // Prevent double execution in React StrictMode
@@ -47,19 +78,9 @@ export default function IntroScreen({ testUrl, onContinue, customScript }: Intro
     hasPlayedRef.current = true
 
     const script = introScript(testUrl, customScript)
-
-    setIsSpeaking(true)
-    // Call speakText with isMuted explicitly set to false
-    speakText(script, () => {
-      setIsSpeaking(false)
-      setHasPlayedIntro(true)
-    }, false).catch((error) => {
-      console.error('Error playing intro audio:', error)
-      // If audio fails, still show the continue button
-      setIsSpeaking(false)
-      setHasPlayedIntro(true)
-    })
-  }, [testUrl, customScript])
+    scriptRef.current = script
+    void playIntro()
+  }, [testUrl, customScript, playIntro])
 
   return (
     <div className="relative flex h-screen w-screen flex-col items-center justify-center overflow-hidden">
@@ -68,18 +89,45 @@ export default function IntroScreen({ testUrl, onContinue, customScript }: Intro
 
       <TalkingSphere isSpeaking={isSpeaking} />
 
-      {hasPlayedIntro && (
-        <div className="mt-12 flex flex-col items-center space-y-4 text-center">
-          <p className="text-sm text-white/70">Ready to begin testing?</p>
+      <div className="mt-12 flex flex-col items-center space-y-4 text-center">
+        {!hasPlayedIntro && (
           <Button
-            onClick={onContinue}
-            size="lg"
-            className="min-w-[220px]"
+            variant="outline"
+            onClick={() => {
+              introSkippedRef.current = true
+              stopAudio()
+              setIsSpeaking(false)
+              setHasPlayedIntro(true)
+            }}
           >
-            Yes, let's start
+            Skip introduction
           </Button>
-        </div>
-      )}
+        )}
+        {audioBlocked && (
+          <div className="flex flex-col items-center space-y-2">
+            <p className="text-xs text-white/70 max-w-sm">
+              Audio was blocked by the browser. Tap below to play the introduction.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setHasPlayedIntro(false)
+                void playIntro()
+              }}
+            >
+              Play introduction
+            </Button>
+          </div>
+        )}
+        {hasPlayedIntro && (
+          <>
+            <p className="text-sm text-white/70">Ready to begin testing?</p>
+            <Button onClick={onContinue} size="lg" className="min-w-[220px]">
+              Yes, let's start
+            </Button>
+          </>
+        )}
+      </div>
     </div>
   )
 }

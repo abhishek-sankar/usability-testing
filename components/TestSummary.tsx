@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
+import { getDemoConfig } from '@/lib/demo-config'
 
 interface TestSummaryProps {
   userEvents: any[]
@@ -28,6 +29,8 @@ export default function TestSummary({
   const [error, setError] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const hasGeneratedRef = useRef(false)
+  const demoConfig = useMemo(() => getDemoConfig(testUrl), [testUrl])
+  const projectId = demoConfig?.projectId ?? process.env.NEXT_PUBLIC_DEFAULT_PROJECT_ID
 
   useEffect(() => {
     // Prevent double execution in React StrictMode
@@ -88,6 +91,7 @@ export default function TestSummary({
           surveyAnswers,
           summary: summaryText,
           sessionStartTime,
+          projectId,
         }),
       })
 

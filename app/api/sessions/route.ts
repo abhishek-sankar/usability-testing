@@ -18,6 +18,8 @@ export async function POST(request: NextRequest) {
       surveyAnswers,
       summary,
       sessionStartTime,
+      projectId,
+      sentimentScore,
     } = body
 
     if (!testUrl) {
@@ -33,11 +35,13 @@ export async function POST(request: NextRequest) {
       : undefined
 
     const sessionData: Omit<TestSession, 'id' | 'created_at'> = {
+      project_id: projectId || null,
       test_url: testUrl,
       user_events: userEvents || [],
       conversation_history: conversationHistory || [],
       survey_answers: surveyAnswers || {},
       summary: summary || undefined,
+      sentiment_score: sentimentScore,
       session_duration: sessionDuration,
     }
 
@@ -55,10 +59,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    // Mirror entry in project_sessions table if project_id provided
+    if (projectId && data?.id) {
+      const { error: projectSessionError } = await supabase
+        .from('project_sessions')
+        .upsert({
+          project_id: projectId,
+          session_id: data.id,
+          sentiment_score: sentimentScore,
+        })
+
+      if (projectSessionError) {
+        console.error('Project session upsert error:', projectSessionError)
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
       sessionId: data.id,
-      session: data 
+      session: data,
     })
   } catch (error) {
     console.error('Session save error:', error)
