@@ -216,12 +216,25 @@ export default function AIPanel({ onEndSession, testUrl, walkthroughContext }: A
         </div>
       </div>
 
-      {/* Transcript - Hide when recording */}
-      {!isRecording && (
-      <div className="flex-1 overflow-y-auto p-4">
-        <Transcript messages={transcript} />
+      {/* Transcript */}
+      <div className="relative flex-1 overflow-hidden">
+        <div
+          className={`h-full overflow-y-auto p-4 transition-opacity duration-200 ${
+            isRecording ? 'opacity-40 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          <Transcript messages={transcript} />
+        </div>
+
+        {isRecording && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="flex items-center gap-2 rounded-full bg-background/90 px-4 py-2 shadow-sm text-sm text-muted-foreground">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              Recording… chat paused until you finish
+            </div>
+          </div>
+        )}
       </div>
-      )}
 
       {/* Voice Input */}
       <div className="p-4 border-t border-border">
